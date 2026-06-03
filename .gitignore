@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+.next/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Debug
+npm-debug.log*
+
+# Misc
+.DS_Store
+*.pem
+add_phone_column.js
