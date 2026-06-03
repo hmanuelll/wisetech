@@ -2,6 +2,8 @@ import pool from '@/lib/db';
 import Link from 'next/link';
 import ProductActions from './ProductActions';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ProductDetails({ params }) {
   const resolvedParams = await params;
   const productId = resolvedParams.id;
