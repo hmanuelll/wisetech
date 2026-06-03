@@ -10,19 +10,16 @@ export async function POST(request) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
     }
 
-    // Check if user exists
-    const [existingUsers] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
-    if (existingUsers.length > 0) {
+    const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    if (existing.rows.length > 0) {
       return NextResponse.json({ error: 'Email already registered' }, { status: 400 });
     }
 
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Insert user
     await pool.query(
-      'INSERT INTO users (name, email, phone, password, role) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO users (name, email, phone, password, role) VALUES ($1, $2, $3, $4, $5)',
       [name, email, phone, hashedPassword, 'USER']
     );
 

@@ -4,8 +4,8 @@ import Link from 'next/link';
 export default async function Home() {
   let featuredProducts = [];
   try {
-    const [rows] = await pool.query('SELECT * FROM products LIMIT 3');
-    featuredProducts = rows;
+    const result = await pool.query('SELECT * FROM products LIMIT 3');
+    featuredProducts = result.rows;
   } catch (error) {
     console.error("Database error:", error);
   }

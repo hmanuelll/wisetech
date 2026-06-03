@@ -12,27 +12,30 @@ export async function GET(request) {
   try {
     let query = 'SELECT * FROM products WHERE 1=1';
     let params = [];
+    let paramIndex = 1;
 
     if (search) {
-      query += ' AND (name LIKE ? OR description LIKE ?)';
+      query += ` AND (name ILIKE $${paramIndex} OR description ILIKE $${paramIndex + 1})`;
       params.push(`%${search}%`, `%${search}%`);
+      paramIndex += 2;
     }
 
     if (brand) {
-      query += ' AND brand = ?';
+      query += ` AND brand = $${paramIndex}`;
       params.push(brand);
+      paramIndex++;
     }
 
     if (ram) {
-      // Using JSON_EXTRACT to search inside the specs column for RAM
-      // MySQL 5.7+ supports JSON functions
-      query += ` AND specs LIKE ?`;
-      params.push(`%${ram}%`); // Simple LIKE search on the JSON string is often enough for simple specs
+      query += ` AND specs::text ILIKE $${paramIndex}`;
+      params.push(`%${ram}%`);
+      paramIndex++;
     }
     
     if (storage) {
-      query += ` AND specs LIKE ?`;
+      query += ` AND specs::text ILIKE $${paramIndex}`;
       params.push(`%${storage}%`);
+      paramIndex++;
     }
 
     if (sort === 'price_asc') {
@@ -45,8 +48,8 @@ export async function GET(request) {
       query += ' ORDER BY id DESC';
     }
 
-    const [rows] = await pool.query(query, params);
-    return NextResponse.json(rows);
+    const result = await pool.query(query, params);
+    return NextResponse.json(result.rows);
   } catch (error) {
     console.error("Database query failed:", error);
     return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });

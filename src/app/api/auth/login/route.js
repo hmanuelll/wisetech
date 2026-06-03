@@ -10,19 +10,18 @@ export async function POST(request) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
     }
 
-    const [users] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
-    if (users.length === 0) {
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (result.rows.length === 0) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const user = users[0];
+    const user = result.rows[0];
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    // Create a response and set a secure HttpOnly cookie
     const response = NextResponse.json({ 
       success: true, 
       user: { id: user.id, name: user.name, email: user.email, role: user.role } 
@@ -31,9 +30,9 @@ export async function POST(request) {
     response.cookies.set({
       name: 'wisetech_session',
       value: JSON.stringify({ id: user.id, role: user.role, name: user.name }),
-      httpOnly: false, // Set to false so the client can read the name for UI purposes in this demo
+      httpOnly: false,
       path: '/',
-      maxAge: 60 * 60 * 24 * 7 // 1 week
+      maxAge: 60 * 60 * 24 * 7
     });
 
     return response;

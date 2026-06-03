@@ -3,16 +3,15 @@ import Link from 'next/link';
 import ProductActions from './ProductActions';
 
 export default async function ProductDetails({ params }) {
-  // In Next.js 15, params is a promise
   const resolvedParams = await params;
   const productId = resolvedParams.id;
 
   let product = null;
   try {
-    const [rows] = await pool.query('SELECT * FROM products WHERE id = ?', [productId]);
-    if (rows.length > 0) {
-      product = rows[0];
-      // Specs might be stringified JSON from db
+    const result = await pool.query('SELECT * FROM products WHERE id = $1', [productId]);
+    if (result.rows.length > 0) {
+      product = result.rows[0];
+      // specs is already parsed as JSONB by pg driver
       if (typeof product.specs === 'string') {
         product.specs = JSON.parse(product.specs);
       }
@@ -80,12 +79,10 @@ export default async function ProductDetails({ params }) {
             </strong>
           </div>
 
-          {/* Client component for Cart/Wishlist/Compare actions */}
           <ProductActions product={product} />
 
           <hr style={{ border: 'none', borderTop: '1px solid #eee', margin: '3rem 0' }} />
 
-          {/* Specs */}
           <h3 style={{ marginBottom: '1.5rem' }}>Full Specifications</h3>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <tbody>
