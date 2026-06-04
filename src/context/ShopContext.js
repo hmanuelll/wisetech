@@ -9,11 +9,31 @@ export function ShopProvider({ children }) {
   const [wishlist, setWishlist] = useState([]);
   const [compareList, setCompareList] = useState([]);
 
+  const [userId, setUserId] = useState(null);
+
   useEffect(() => {
+    let currentUserId = null;
+    const session = document.cookie.split('; ').find(row => row.startsWith('wisetech_session='));
+    if (session) {
+      try {
+        const userData = JSON.parse(decodeURIComponent(session.split('=')[1]));
+        currentUserId = userData.id;
+        setUserId(currentUserId);
+      } catch (e) {}
+    } else {
+      setUserId(null);
+      setCart([]);
+      setWishlist([]);
+      setCompareList([]);
+      return;
+    }
+
+    if (!currentUserId) return;
+
     try {
-      const storedCart = localStorage.getItem('wisetech_cart');
-      const storedWishlist = localStorage.getItem('wisetech_wishlist');
-      const storedCompare = localStorage.getItem('wisetech_compare');
+      const storedCart = localStorage.getItem(`wisetech_cart_${currentUserId}`);
+      const storedWishlist = localStorage.getItem(`wisetech_wishlist_${currentUserId}`);
+      const storedCompare = localStorage.getItem(`wisetech_compare_${currentUserId}`);
 
       if (storedCart) setCart(JSON.parse(storedCart));
       if (storedWishlist) setWishlist(JSON.parse(storedWishlist));
@@ -21,19 +41,23 @@ export function ShopProvider({ children }) {
     } catch (e) {
       console.error("Failed to load state", e);
     }
+
+    const handleClearCart = () => setCart([]);
+    window.addEventListener('wisetech-clear-cart', handleClearCart);
+    return () => window.removeEventListener('wisetech-clear-cart', handleClearCart);
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('wisetech_cart', JSON.stringify(cart));
-  }, [cart]);
+    if (userId) localStorage.setItem(`wisetech_cart_${userId}`, JSON.stringify(cart));
+  }, [cart, userId]);
 
   useEffect(() => {
-    localStorage.setItem('wisetech_wishlist', JSON.stringify(wishlist));
-  }, [wishlist]);
+    if (userId) localStorage.setItem(`wisetech_wishlist_${userId}`, JSON.stringify(wishlist));
+  }, [wishlist, userId]);
 
   useEffect(() => {
-    localStorage.setItem('wisetech_compare', JSON.stringify(compareList));
-  }, [compareList]);
+    if (userId) localStorage.setItem(`wisetech_compare_${userId}`, JSON.stringify(compareList));
+  }, [compareList, userId]);
 
   const requireAuth = () => {
     const session = document.cookie.split('; ').find(row => row.startsWith('wisetech_session='));

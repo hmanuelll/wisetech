@@ -11,14 +11,17 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(true);
   
   const [formData, setFormData] = useState({
-    name: '', phone: '', address: '', paymentMethod: 'cash', location: 'Lusaka'
+    name: '', phone: '', address: '', paymentMethod: 'cash', location: 'Town Lusaka'
   });
 
   useEffect(() => {
     // Check auth cookie
     const session = document.cookie.split('; ').find(row => row.startsWith('wisetech_session='));
     if (session) {
-      setIsAuthenticated(true);
+      try {
+        const userData = JSON.parse(decodeURIComponent(session.split('=')[1]));
+        setIsAuthenticated(true);
+      } catch(e) {}
     }
     setLoading(false);
   }, []);
@@ -62,7 +65,7 @@ export default function CheckoutPage() {
     );
   }
 
-  const deliveryFee = formData.location === 'Lusaka' ? 50 : formData.location === 'Kitwe' || formData.location === 'Ndola' ? 100 : 150;
+  const deliveryFee = formData.location === 'Town Lusaka' ? 50 : formData.location === 'Kitwe' || formData.location === 'Ndola' ? 100 : 150;
   const finalTotal = cartTotal + deliveryFee;
 
   const handleSubmit = async (e) => {
@@ -71,12 +74,13 @@ export default function CheckoutPage() {
     
     // In a real app, send this to the /api/orders route
     // For now, mock success
-    setTimeout(() => {
-      toast.dismiss();
-      toast.success("Order placed successfully!");
-      setSuccess(true);
-      localStorage.removeItem('wisetech_cart');
-    }, 1500);
+      setTimeout(() => {
+        toast.dismiss();
+        toast.success("Order placed successfully!");
+        setSuccess(true);
+        // We trigger a custom event so ShopContext can clear the cart
+        window.dispatchEvent(new CustomEvent('wisetech-clear-cart'));
+      }, 1500);
   };
 
   return (
@@ -101,7 +105,7 @@ export default function CheckoutPage() {
             <div>
               <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '0.5rem' }}>Delivery Location</label>
               <select value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>
-                <option value="Lusaka">Lusaka (K50)</option>
+                <option value="Town Lusaka">Town Lusaka (K50)</option>
                 <option value="Kitwe">Kitwe (K100)</option>
                 <option value="Ndola">Ndola (K100)</option>
                 <option value="Other">Other Province (K150)</option>

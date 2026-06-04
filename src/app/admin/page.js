@@ -71,8 +71,10 @@ export default function AdminDashboard() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('wisetech_admin');
-    window.location.href = '/';
+    if (confirm("Are you sure you want to log out from the Admin Dashboard?")) {
+      localStorage.removeItem('wisetech_admin');
+      window.location.href = '/';
+    }
   };
 
   if (!isAdmin) return null;
