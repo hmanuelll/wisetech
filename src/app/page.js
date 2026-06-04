@@ -64,7 +64,7 @@ export default async function Home() {
             <span className="location-icon">📍</span>
             <div>
               <strong>Codrington House Room 8</strong><br/>
-              Nkwazi Road, Lusaka, Lusaka, Zambia, 10101
+              Nkwazi Road, Lusaka, Zambia.
             </div>
           </div>
         </div>
